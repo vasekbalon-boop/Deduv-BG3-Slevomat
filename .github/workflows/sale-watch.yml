@@ -4,11 +4,20 @@ name: BG3 sale watch
 on:
   schedule:
     # Časy jsou v UTC, GitHub jiné pásmo neumí (v zimě to poskočí o hodinu zpět).
-     - cron: "30 18 * * *"    # 19:30 SELČ — Steam spouští slevy kolem 19:00
+    # 18:30 UTC = 20:30 SELČ (léto) / 19:30 SEČ (zima).
+    # GitHub cron se běžně opozdí o 10–30 min a pod zátěží běh občas vynechá,
+    # proto raději dva časy denně než jeden.
+    - cron: "30 18 * * *"
+    - cron: "30 8 * * *"
+
   workflow_dispatch:         # ruční spuštění ze záložky Actions
     inputs:
       force:
         description: "Poslat testovací zprávu bez ohledu na slevu"
+        type: boolean
+        default: false
+      reset:
+        description: "Vynulovat počítadlo připomínek (po koupi hry)"
         type: boolean
         default: false
 
@@ -22,6 +31,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -37,15 +47,27 @@ jobs:
           STEAM_CC: "cz"
           MIN_DISCOUNT: "20"         # Larian slevuje mělce, zvaž "10"
           FORCE_NOTIFY: ${{ inputs.force }}
+          RESET_COUNTER: ${{ inputs.reset }}
         run: python check_sale.py
 
+      # if: always() je klíčové — když spadne Steam nebo Discord, musí se
+      # čerstvý last_check stejně commitnout, jinak GitHub po 60 dnech
+      # nečinnosti naplánovaný workflow vypne. Přesně ve chvíli, kdy je rozbitý.
       - name: Uložit stav
+        if: always()
         run: |
           git config user.name  "sale-watch[bot]"
           git config user.email "sale-watch@users.noreply.github.com"
           git add state.json
-          git diff --staged --quiet && exit 0
+          git diff --staged --quiet && { echo "Stav beze změny."; exit 0; }
           git commit -m "state: $(date -u +%F\ %H:%M)"
-          # kdyby mezitím někdo pushnul, ať to nespadne na non-fast-forward
-          git pull --rebase --autostash
-          git push
+
+          # Kdyby mezitím někdo pushnul, ať to nespadne na non-fast-forward.
+          for attempt in 1 2 3; do
+            git pull --rebase --autostash && git push && exit 0
+            git rebase --abort 2>/dev/null || true
+            echo "Push selhal (pokus $attempt/3), zkouším znovu za 5 s."
+            sleep 5
+          done
+          echo "::error::Nepodařilo se uložit state.json do repozitáře."
+          exit 1
