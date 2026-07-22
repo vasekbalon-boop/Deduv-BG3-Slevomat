@@ -27,6 +27,7 @@ APP_ID = os.getenv("STEAM_APP_ID", "1086940")
 COUNTRY = os.getenv("STEAM_CC", "cz")
 MIN_DISCOUNT = int(os.getenv("MIN_DISCOUNT", "20"))
 STATE_FILE = Path(os.getenv("STATE_FILE", "state.json"))
+FORCE = os.getenv("FORCE_NOTIFY", "").strip().lower() in ("1", "true", "yes")
 
 UA = {"User-Agent": "bg3-sale-watcher/1.0"}
 
@@ -87,11 +88,10 @@ def main() -> int:
     state["last_discount"] = discount
     print(f"{name}: -{discount}% -> {final} (last announced {announced}%)")
 
-    should_notify = discount >= MIN_DISCOUNT and discount > announced
+    if FORCE:
+        print("FORCE_NOTIFY set — sending regardless of discount.")
 
-    if discount < MIN_DISCOUNT:
-        state["announced_discount"] = 0
-    elif should_notify:
+    if FORCE or (discount >= MIN_DISCOUNT and discount > announced):
         post_to_discord(
             {
                 "content": f"<@{USER_ID}>",
@@ -111,8 +111,11 @@ def main() -> int:
                 ],
             }
         )
-        state["announced_discount"] = discount
+        if not FORCE:
+            state["announced_discount"] = discount
         print("Notification sent.")
+    elif discount < MIN_DISCOUNT:
+        state["announced_discount"] = 0
 
     STATE_FILE.write_text(json.dumps(state, indent=2), encoding="utf-8")
     return 0
