@@ -1,8 +1,6 @@
 <h1 align="center">🐉 Hlídač slev na Baldur's Gate 3</h1>
 
-<p align="center">
-  <img src="Toban BG3 Slevomat.webp" width="560">
-</p>
+
 <p align="center">
   <em>Protože potřetí už to není náhoda, ale povahová vada.</em>
 </p>
@@ -14,11 +12,9 @@
   <img src="https://img.shields.io/badge/hostov%C3%A1n%C3%AD-zdarma-brightgreen?style=for-the-badge" alt="hostování: zdarma">
 </p>
 
-<!-- ⬇️ SEM PATŘÍ TVŮJ OBRÁZEK. Návod, jak ho tam dostat, je úplně dole. -->
 <p align="center">
-  <img src="docs/ukazka.png" alt="Takhle vypadá, když tě šikanuje vlastní repozitář" width="560">
+  <img src="Toban BG3 Slevomat.webp" width="560">
 </p>
-
 ---
 
 ## 😔 Problém
