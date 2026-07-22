@@ -1,28 +1,33 @@
 # Save as .github/workflows/sale-watch.yml
 name: BG3 sale watch
- 
+
 on:
   schedule:
     - cron: "17 */6 * * *"   # every 6 hours, offset off the hour (less queue contention)
   workflow_dispatch:          # lets you trigger a test run from the Actions tab
- 
+    inputs:
+      force:
+        description: "Send a test notification regardless of discount"
+        type: boolean
+        default: false
+
 permissions:
   contents: write             # needed to commit state.json back
- 
+
 concurrency:
   group: sale-watch
   cancel-in-progress: false
- 
+
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
- 
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
- 
+
       - name: Check Steam price
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -30,8 +35,9 @@ jobs:
           STEAM_APP_ID: "1086940"
           STEAM_CC: "cz"
           MIN_DISCOUNT: "0"
+          FORCE_NOTIFY: ${{ inputs.force }}
         run: python check_sale.py
- 
+
       - name: Persist state
         run: |
           git config user.name  "sale-watch[bot]"
