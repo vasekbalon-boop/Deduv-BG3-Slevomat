@@ -15,7 +15,6 @@
 <p align="center">
   <img src="Toban BG3 Slevomat.webp" width="560">
 </p>
----
 
 ## 😔 Problém
 
