@@ -94,7 +94,7 @@ CTA = [
 ]
 
 FOOTERS = [
-    "další kontrola za 6 h · uvidíme, jak dopadneš",
+    "ozvu se zas · uvidíme, jak dopadneš",
     "tenhle bot má lepší docházku než ty",
     "napsal sis mě sám · tohle je celé tvoje vina",
     "hlídám i v noci · na rozdíl od tvého sebeovládání",
